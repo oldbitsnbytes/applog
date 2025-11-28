@@ -34,6 +34,22 @@ field_info::~field_info()
 }
 
 
+std::string field_info::schema_info() const
+{
+    cpp::string out;
+    out << name;
+    switch (type)
+    {
+        case data_type::integer: out << " INTEGER"; break;
+        case data_type::real: out << " REAL"; break;
+        case data_type::text: out << " TEXT"; break;
+        case data_type::blob: out << " BLOB"; break;
+    }
+    //...
+    return out();
+}
+
+
 std::vector<field_info::iterator> table_info::foreign_keys()
 {
     std::vector<field_info::iterator> fkeys{};
@@ -101,13 +117,18 @@ sdb::sdb(std::string db_name):_db_name(std::move(db_name))
     sqlite3_exec(_db,"PRAGMA temp_store=MEMORY;",nullptr,nullptr,nullptr);
     sqlite3_exec(_db,"PRAGMA cache_size=10000;",nullptr,nullptr,nullptr);
     sqlite3_exec(_db,"PRAGMA count_changes=OFF;",nullptr,nullptr,nullptr);
+
+    sys::info() << rem::fn::func << " SQLite database '" << db_filename << "' opened successfully." << sys::eol;
 }
 
 
 
 sdb::~sdb()
 {
-    sqlite3_close(_db);
+    if (_db)
+        sqlite3_close(_db);
+    _tables.clear();
+    _db_name.clear();
 }
 
 

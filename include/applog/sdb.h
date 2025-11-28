@@ -31,8 +31,12 @@
 
 namespace cpp::sql
 {
-
-
+/**
+ * @brief Represents metadata and configuration for a single field in a database table.
+ *
+ * Manages attributes such as field name, data type, indexing information, and associated rows.
+ * Provides constructors for initialization and a destructor for cleanup.
+ */
 struct field_info
 {
     std::string name{};
@@ -52,6 +56,14 @@ struct field_info
         foreign_key=5
     }index{field_info::not_indexed};
 
+    struct index_info
+    {
+        field_info::index_type type{};
+        std::string table_name{};
+        std::string column_name{};
+        std::string referenced_table_name{};
+        std::string referenced_column_name{};
+    };
     std::vector<std::string> rows{};
     using iterator = std::vector<field_info>::iterator;
 
@@ -59,10 +71,17 @@ struct field_info
     field_info() = default;
     ~field_info();
 
+    std::string schema_info() const;
+
 
 };
 
-
+/**
+ * @brief Provides metadata and information about a database table's structure.
+ *
+ * Manages details such as column names, data types, and other properties for describing
+ * the schema of a database table.
+ */
 struct table_info
 {
     std::string             name;
@@ -85,8 +104,11 @@ struct table_info
 };
 
 
-
-
+/**
+ * @brief Represents a database implementation using SQLite with support for table and field management.
+ *
+ * Provides functionality to manage a database connection and perform table creation using RAII principles.
+ */
 class sdb
 {
 
@@ -101,6 +123,8 @@ public:
     ~sdb();
 
     table_info& create_table(std::string tbl_name);
+
+
 private:
 
 };
