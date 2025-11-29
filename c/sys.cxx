@@ -155,7 +155,8 @@ void sys::out::init_header()
     // }
     if(header_data.Type){
         auto [Icon,Colors] = rem::type_attributes(type);
-        header << Colors <<  glyph::data[Icon]  << ' ' << rem::to_string(type) << color::z << ' ';
+        //header << Colors <<  glyph::data[Icon]  << ' ' << rem::to_string(type) << color::z << ' ';
+        header << Colors << rem::to_string(type) << color::z << ": ";
     }
 
     // if(header_data.File){
@@ -303,7 +304,8 @@ sys::out& sys::out::operator << ( rem::code c)
     std::lock_guard<std::mutex> lock(LogMTX);
     auto [ic,col] = rem::return_code_attributes(c);
     cpp::string str;
-    str << col << ic << rem::to_string(c);
+    //str << col << ic << rem::to_string(c);
+    str << col << rem::to_string(c);
     //sys::_ram.push_back(str());
     text << str();
     return *this;
@@ -320,6 +322,7 @@ sys::out& sys::out::operator << ( rem::type ty)
     std::lock_guard<std::mutex> lock(LogMTX);
     auto [ic,col] = rem::type_attributes(ty);
     cpp::string str;
+    // str << col << ic << rem::to_string(ty);
     str << col << ic << rem::to_string(ty);
     //sys::_ram.push_back(str());
     text << str();
