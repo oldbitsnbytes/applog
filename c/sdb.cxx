@@ -105,7 +105,8 @@ field_info& table_info::operator[](std::string_view idx)
  */
 sdb::sdb(std::string db_name):_db_name(std::move(db_name))
 {
-    auto db_filename = db_name + ".db";
+    auto db_filename = _db_name + ".db";
+    std::cout << "SQLite database '" << db_filename << "' opening..." << std::endl;
     auto res = sqlite3_open(db_filename.c_str(),&_db);
     if(res != SQLITE_OK)
         throw std::runtime_error(sqlite3_errmsg(_db));
@@ -126,9 +127,13 @@ sdb::sdb(std::string db_name):_db_name(std::move(db_name))
 sdb::~sdb()
 {
     if (_db)
+    {
         sqlite3_close(_db);
+        std::cout << "SQLite database '" << _db_name << "' closed successfully." << std::endl;
+    }
     _tables.clear();
     _db_name.clear();
+
 }
 
 

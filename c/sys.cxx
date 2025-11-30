@@ -624,7 +624,19 @@ rem::code sys::flush(std::string_view filename, std::ios_base::openmode mode)
         std::cout << "Unable to open file: " << filename << std::endl;
         return rem::code::failed;
     }
+    file << "--------------------" <<
+        color::render_rgb(color::yellow) <<
+            "sys" << color::render_rgb(color::lightgreen2)<<
+                "::" <<
+                    color::render_rgb(color::lightcyan3) <<
+                        "log" <<
+                            color::render(color::r) << "----------------------------------------" <<
+                                color::render(color::r) << std::endl;
+
+    file << " application log file '" << filename << "'" << std::endl;
+    file << "--------------------------------------------------------------------" << std::endl;
     for (const auto& txt : sys::_ram) file << txt << std::endl;
+    file << "--------------------------eof---------------------------------------" << std::endl;
     // ~file() auto-close?
     //sys::_ram.clear();
     file.close();
