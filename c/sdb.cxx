@@ -29,8 +29,25 @@ namespace cpp::sql
 
 field_info::~field_info()
 {
+    std::cout << "    ~field_info('" << name << "')" << std::endl;
     rows.clear();
     name.clear();
+}
+
+
+rem::code field_info::set_primary_key()
+{
+    index = index_type::primary_key;
+    return rem::code::ok;
+}
+
+
+rem::code field_info::set_foreign_key(std::string ref_tbl_name, std::string ref_col_name)
+{
+    fk.referenced_table_name = std::move(ref_tbl_name);
+    fk.referenced_column_name = std::move(ref_col_name);
+    index = index_type::foreign_key;
+    return rem::code::ok;
 }
 
 
@@ -40,11 +57,25 @@ std::string field_info::schema_info() const
     out << name;
     switch (type)
     {
-        case data_type::integer: out << " INTEGER"; break;
+        case data_type::integer:
+        {
+            out << " INTEGER";
+            if(not_null)
+            {
+                out << " NOT NULL";
+                if(default_value.empty())
+                    out << " DEFAULT " << default_value;
+            }
+            // else
+            //     if (index == index_type::primary_key)
+            //         out << " PRIMARY KEY";
+        }
+            break;
         case data_type::real: out << " REAL"; break;
         case data_type::text: out << " TEXT"; break;
         case data_type::blob: out << " BLOB"; break;
     }
+
     //...
     return out();
 }
@@ -53,16 +84,19 @@ std::string field_info::schema_info() const
 std::vector<field_info::iterator> table_info::foreign_keys()
 {
     std::vector<field_info::iterator> fkeys{};
-    for(auto f = fields.begin(); f != fields.end(); ++f) if(f->index == field_info::index_type::foreign_key) fkeys.emplace_back(f);
+    for(auto f = fields.begin(); f != fields.end(); ++f) if(f->index == field_info::index_type::foreign_key) fkeys.push_back(f);
     return fkeys;
 }
 
 
 table_info::~table_info()
 {
+    std::cout << "~table_info('" << name  << "')" << std::endl;
+    std::cout << "    clearing ("<< fields.size() << ") fields" << std::endl;
     fields.clear();
     name.clear();
 }
+
 
 
 u32 table_info::prepare_field(std::string field_name, field_info::data_type field_type,
@@ -75,6 +109,7 @@ u32 table_info::prepare_field(std::string field_name, field_info::data_type fiel
 
 table_info& table_info::operator,(field_info&&f)
 {
+    std::cout << "    adding field '" << f.name << "' ( Destructor called during std::move ):" << std::endl;
     fields.emplace_back(std::move(f));
     return *this;
 }
@@ -95,6 +130,41 @@ field_info& table_info::operator[](std::string_view idx)
             return f;
     throw sys::exception()[sys::error() << "field name '" << idx << "' not found in table '" << name << "'"];
     return fields.back();
+}
+
+
+std::string table_info::schema_info()
+{
+    cpp::string out;
+    out << "CREATE TABLE IF NOT EXISTS \"" << name << "\" (";
+    auto i = 0;
+    for(auto& f : fields)
+    {
+        if (i>0)
+            out << ", ";
+        out << f.schema_info();
+        ++i;
+    }
+    auto fk = std::move(foreign_keys());
+    if (fk.empty())
+        return out() + ");";
+
+    for (auto const f: fk)
+    {
+
+        switch (f->index)
+        {
+            case field_info::index_type::primary_key:  out << ", PRIMARY KEY"; break;
+            case field_info::index_type::foreign_key:  out << ", FOREIGN KEY(\"" << f->name << "\") REFERENCES \"" << f->fk.referenced_table_name << "\"(\"" << f->fk.referenced_column_name << "\")"; break;
+
+            default:break;
+        }
+
+    }
+
+    out << ");";
+
+    return out();
 }
 
 
@@ -144,4 +214,31 @@ table_info& sdb::create_table(std::string tbl_name)
 }
 
 
+table_info& sdb::operator[](std::string_view tbl_name)
+{
+    for(auto& t : _tables) if(t.name == tbl_name) return t;
+    throw sys::exception()[sys::error() << "table '" << tbl_name << "' not found in database '" << _db_name << "'"];
+}
+
+
+int sdb::call_back(void* tbl_schema, int col_count, char** data, char** column_name)
+{
+    if (!tbl_schema)
+        throw sys::exception()[sys::error() << "table schema is null"];
+    if (!data)
+        throw sys::exception()[sys::error() << "table data is null"];
+    if (!column_name)
+        throw sys::exception()[sys::error() << "table column names is null"];
+    sys::info()  << "table schema: " << tbl_schema << sys::eol;
+    auto& table = *(reinterpret_cast<table_info*>(tbl_schema));
+    for (int i = 0; i < col_count; ++i)
+    {
+        field_info& f = table[column_name[i]];
+        if (data[i])
+            f.rows.emplace_back(data[i] ? data[i]: "nullptr");
+
+    }
+
+    return 0;
+}
 }

@@ -47,6 +47,9 @@ struct field_info
         blob=4,
     } type{field_info::integer};
 
+    bool not_null{false};
+    std::string default_value{};
+
     enum index_type:u8
     {
         primary_key=1,
@@ -56,22 +59,26 @@ struct field_info
         foreign_key=5
     }index{field_info::not_indexed};
 
-    struct index_info
+    struct foreign_key_info
     {
-        field_info::index_type type{};
-        std::string table_name{};
         std::string column_name{};
         std::string referenced_table_name{};
         std::string referenced_column_name{};
-    };
+    }fk{};
+
     std::vector<std::string> rows{};
     using iterator = std::vector<field_info>::iterator;
 
     field_info(std::string col_name, field_info::data_type t, index_type field_index_type) : name(std::move(col_name)), type(t), index(field_index_type){}
     field_info() = default;
     ~field_info();
+    rem::code set_primary_key();
+    rem::code set_foreign_key(std::string ref_tbl_name, std::string ref_col_name);
+    rem::code set_unique();
+    rem::code set_indexed();
 
-    std::string schema_info() const;
+
+    [[nodiscard]] std::string schema_info() const;
 
 
 };
@@ -101,6 +108,9 @@ struct table_info
     table_info& operator,(field_info&& f);
     field_info& operator[](u32 idx);
     field_info& operator[](std::string_view idx);
+
+
+    [[nodiscard]] std::string schema_info();
 };
 
 
@@ -123,9 +133,11 @@ public:
     ~sdb();
 
     table_info& create_table(std::string tbl_name);
-
+    table_info& operator[](std::string_view tbl_name);
 
 private:
+
+    static int call_back(void *NotUsed, int argc, char **argv, char **azColName);
 
 };
 

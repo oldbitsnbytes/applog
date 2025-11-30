@@ -551,9 +551,40 @@ const char* sys::exception::what() const noexcept
 
 #pragma endregion exceptions.
 
-sys::sys(std::string db_name): _db_name(std::move(db_name))
+sys::sys(std::string db_name)
 {
-    _db = new cpp::sql::sdb(_db_name);
+    try
+    {
+        std::cout << "Initializing the application journal database '" << db_name << '\'' << std::endl;
+        _db = new cpp::sql::sdb(std::move(db_name));
+
+        _db->create_table("Section"),
+            cpp::sql::field_info{"ID", cpp::sql::field_info::data_type::integer, cpp::sql::field_info::index_type::primary_key},
+            cpp::sql::field_info{"Name", cpp::sql::field_info::data_type::text, cpp::sql::field_info::index_type::not_indexed},
+            cpp::sql::field_info{"Description", cpp::sql::field_info::data_type::blob, cpp::sql::field_info::index_type::not_indexed};
+
+        _db->create_table("Article"),
+            cpp::sql::field_info{"ID", cpp::sql::field_info::data_type::integer, cpp::sql::field_info::index_type::primary_key},
+            cpp::sql::field_info{"Title", cpp::sql::field_info::data_type::text, cpp::sql::field_info::index_type::not_indexed},
+            cpp::sql::field_info{"Subject", cpp::sql::field_info::data_type::blob, cpp::sql::field_info::index_type::not_indexed},
+            cpp::sql::field_info{"Section", cpp::sql::field_info::data_type::integer, cpp::sql::field_info::index_type::foreign_key};
+
+       _db->create_table("Log"),
+            cpp::sql::field_info{"ID", cpp::sql::field_info::data_type::integer, cpp::sql::field_info::index_type::primary_key},
+            cpp::sql::field_info{"Article", cpp::sql::field_info::data_type::integer, cpp::sql::field_info::index_type::foreign_key},
+            cpp::sql::field_info{"Data", cpp::sql::field_info::data_type::blob, cpp::sql::field_info::index_type::not_indexed};
+
+        auto& table = (*_db)["Article"];
+        auto& f = table["Section"];
+        f.set_foreign_key("Section", "ID");
+        std::cout << table.schema_info();
+
+    }catch (std::exception& e)
+    {
+        std::cerr << e.what() << std::endl;
+        return;
+    }
+
 }
 
 
