@@ -25,12 +25,16 @@
 #pragma once
 #include <applog/tostr.h>
 #include <source_location>
+#include <sqlite3.h>
 
 using namespace cpp::integers;
 using cpp::color;
 
 
-
+namespace cpp::sql
+{
+    class sdb;
+}
 
 
 class sys
@@ -111,7 +115,8 @@ public:
     };
 
     sys()=delete;
-    ~sys() = default;
+    sys(std::string db_name);
+    ~sys();
 
 
     static sys::out error       (std::source_location&& src = std::source_location::current());
@@ -156,10 +161,8 @@ public:
     };
 
 private:
-
+    std::string _db_name{};
+    cpp::sql::sdb* _db{nullptr};
 
     
 };
-
-
-//#endif //CATUI_SYS_H

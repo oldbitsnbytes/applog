@@ -10,7 +10,7 @@ using cpp::color;
 auto main() -> int
 {
     sys::message() << "Hello World!" << color::reset << sys::eol;
-    cpp::sql::sdb db("applog_test");
+    sys logger("applog_test");
 
     sys::flush("app.log");
 

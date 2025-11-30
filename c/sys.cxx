@@ -6,6 +6,7 @@
 //#include <mutex>
 
 #include <fstream>
+#include <applog/sdb.h>
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -184,6 +185,21 @@ void sys::out::init_header()
     text = header;
     //sys::_ram.push_back(dash());
 }
+
+
+sys::out& sys::out::write()
+{
+    return *this;
+}
+
+
+sys::~sys()
+{
+    //...
+    delete _db;
+    //...
+}
+
 
 /////////////////////////////////////////////////////////////////////////////
 /// \brief COut::out::operator <<
@@ -534,6 +550,12 @@ const char* sys::exception::what() const noexcept
 
 
 #pragma endregion exceptions.
+
+sys::sys(std::string db_name): _db_name(std::move(db_name))
+{
+    _db = new cpp::sql::sdb(_db_name);
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////
 /// \brief COut::error
