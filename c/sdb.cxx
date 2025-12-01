@@ -29,7 +29,7 @@ namespace cpp::sql
 
 field_info::~field_info()
 {
-    std::cout << "    ~field_info('" << name << "')" << std::endl;
+    //std::cout << "    ~field_info('" << name << "')" << std::endl;
     rows.clear();
     name.clear();
 }
@@ -47,6 +47,20 @@ rem::code field_info::set_foreign_key(std::string ref_tbl_name, std::string ref_
     fk.referenced_table_name = std::move(ref_tbl_name);
     fk.referenced_column_name = std::move(ref_col_name);
     index = index_type::foreign_key;
+    return rem::code::ok;
+}
+
+
+rem::code field_info::set_unique()
+{
+    index = index_type::unique;
+    return rem::code::ok;
+}
+
+
+rem::code field_info::set_indexed()
+{
+    index = index_type::indexed;
     return rem::code::ok;
 }
 
@@ -92,8 +106,8 @@ std::vector<field_info::iterator> table_info::keys()
 
 table_info::~table_info()
 {
-    std::cout << "~table_info('" << name  << "')" << std::endl;
-    std::cout << "    clearing ("<< fields.size() << ") fields" << std::endl;
+    //std::cout << "~table_info('" << name  << "')" << std::endl;
+    //std::cout << "    clearing ("<< fields.size() << ") fields" << std::endl;
     fields.clear();
     name.clear();
 }
@@ -134,7 +148,7 @@ field_info& table_info::operator[](std::string_view idx)
 }
 
 
-std::string table_info::schema_info()
+std::string table_info::generate_create_table_statement()
 {
     cpp::string out;
     out << "CREATE TABLE IF NOT EXISTS \"" << name << "\" (";
@@ -190,7 +204,7 @@ sdb::sdb(std::string db_name):_db_name(std::move(db_name))
     sqlite3_exec(_db,"PRAGMA cache_size=10000;",nullptr,nullptr,nullptr);
     sqlite3_exec(_db,"PRAGMA count_changes=OFF;",nullptr,nullptr,nullptr);
 
-    sys::info() << rem::fn::func << " SQLite database '" << db_filename << "' opened successfully." << sys::eol;
+    sys::info() << rem::fn::file << sys::eol << rem::fn::func << sys::eol << "    => SQLite database '" << db_filename << "' opened successfully." << sys::eol;
 }
 
 

@@ -103,6 +103,15 @@ public:
         out& operator << (sys::fn f);
         out& operator << (cpp::rectangle rect);
 
+        out& render_stamp();
+        out& render_file_line();
+        out& render_function();
+        out& render_day();
+        out& render_weekday();
+        out& render_month();
+        out& render_month_name();
+        out& render_year();
+
 
         template<typename T> out& operator << (const T& v)
         {

@@ -110,7 +110,7 @@ struct table_info
     field_info& operator[](std::string_view idx);
 
 
-    [[nodiscard]] std::string schema_info();
+    [[nodiscard]] std::string generate_create_table_statement();
 };
 
 

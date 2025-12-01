@@ -226,7 +226,8 @@ std::map<rem::fn, const char*> functions_dictionary= {
     {rem::fn::dayname,        "day name"},
     {rem::fn::day,            "day"},
     {rem::fn::monthnum,       "month number"},
-    {rem::fn::year,           "year"}
+    {rem::fn::year,           "year"},
+    {rem::fn::location,       "location"}
 };
 
 
@@ -411,7 +412,8 @@ std::map<rem::fn, std::pair<glyph::value, color::pair>> functions_database={
     {rem::fn::dayname   ,      {glyph::star5    ,   {color::white             ,color::reset }}},
     {rem::fn::day       ,      {glyph::star5    ,   {color::white             ,color::reset }}},
     {rem::fn::monthnum  ,      {glyph::star5    ,   {color::white             ,color::reset }}},
-    {rem::fn::year      ,      {glyph::star5    ,   {color::white             ,color::reset }}}
+    {rem::fn::year      ,      {glyph::star5    ,   {color::white             ,color::reset }}},
+    {rem::fn::location  ,      {glyph::star5    ,   {color::white             ,color::reset }}}
 
 };
 
@@ -484,7 +486,7 @@ std::string render(rem::code c)
 
     auto [g,col] = return_code_attributes(c);
     std::string text = color::render_rgb(col);
-    text += glyph::data[g];
+    //text += glyph::data[g];
     text += ' ';
     text += rem::to_string(c);
     text += "\x1b[39m";
@@ -496,7 +498,7 @@ std::string render(rem::type c)
 {
     auto [g,col] = type_attributes(c);
     std::string text = color::render_rgb(col);
-    text += glyph::data[g];
+    //text += glyph::data[g];
     text += ' ';
     text += rem::to_string(c);
     text += "\x1b[39m";

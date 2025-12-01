@@ -166,7 +166,7 @@ enum class code :cpp::integers::U8
     applied          ,
     notapplicable    ,
     valid            ,
-    invalid          ,
+    invalid
     //...to be continued
 
 };
@@ -212,7 +212,8 @@ enum class fn :cpp::integers::U8
     month            , ///< Par defaut month name
     day              ,
     monthnum         , ///< Maintenant explicite
-    year
+    year             ,
+    location           ///< full text source location ( dedicated entry line containing stamp, file, line, fully-qualified function name )
 };
 
 

@@ -376,6 +376,67 @@ sys::out& sys::out::operator << (rectangle r)
     return *this;
 }
 
+
+sys::out& sys::out::render_stamp()
+{
+
+    //std::chrono::zoned_time date{"america/toronto", std::chrono::system_clock::now()};
+    //const auto tp{std::chrono::system_clock::now()};
+    //auto txt{string::now("{:%h:%m:%s}", tp)};
+    auto [ic, a] = rem::function_attributes(rem::fn::stamp);
+
+    text << a.fg << cpp::string::now("%H:%M:%s") << color::z;
+    //sys::_ram.push_back(str());
+
+    return *this;
+}
+
+
+sys::out& sys::out::render_file_line()
+{
+    text << color::r << "line #" << location.line() << color::z << " in " << color::r << location_tail(location.file_name()) << color::z;
+    return *this;
+}
+
+
+sys::out& sys::out::render_function()
+{
+    text << color::r << "    in function:" << " " << location_tail(location.function_name());
+    return *this;
+}
+
+
+sys::out& sys::out::render_day()
+{
+
+    return *this;
+}
+
+
+sys::out& sys::out::render_weekday()
+{
+    return *this;
+}
+
+
+sys::out& sys::out::render_month()
+{
+    return *this;
+}
+
+
+sys::out& sys::out::render_month_name()
+{
+    return *this;
+}
+
+
+sys::out& sys::out::render_year()
+{
+    return *this;
+}
+
+
 // COut::out& COut::out::operator << (ui::string2d s2d)
 // {
 //     string str;
@@ -409,29 +470,12 @@ sys::out& sys::out::operator << (rem::fn f)
             //                    break;
             //            }
             return *this;
-        case rem::fn::stamp: {
-            /*
-                     * %d %f ou %d %m %y
-                     * %r %t %h %m %s
-                     * %a {monday} %a {mon}
-                     * %b {june}   %b {jun}
-                */
-
-
-            //std::chrono::zoned_time date{"america/toronto", std::chrono::system_clock::now()};
-            //const auto tp{std::chrono::system_clock::now()};
-            //auto txt{string::now("{:%h:%m:%s}", tp)};
-            auto [ic, a] = rem::function_attributes(rem::fn::stamp);
-
-            str << a.fg << glyph::data[ic] << color::z << cpp::string::now("%H:%M:%s");
-            //sys::_ram.push_back(str());
-            text << str();
-            return *this;
-        }
+        case rem::fn::stamp:
+            return render_stamp();
 
         case rem::fn::file:
-            sys::_ram.emplace_back(location.file_name());
-            return *this;
+            return render_file_line();
+
         case rem::fn::line:
         {
             auto [ggg, ccolors] = rem::function_attributes(rem::fn::line);
@@ -484,14 +528,8 @@ sys::out& sys::out::operator << (rem::fn f)
             return *this;
         }
         case rem::fn::func:
-        {
-            auto [gh, colors] = rem::function_attributes(rem::fn::func);
-            str << colors << location.function_name() << color::z << "\n";
-            //sys::_ram.emplace_back(str());
-            text << str();
-            return *this;
-        }
-            break;
+            return render_function();
+
         default: break;
     }
     return *this;
@@ -574,15 +612,19 @@ sys::sys(std::string db_name)
             cpp::sql::field_info{"Article", cpp::sql::field_info::data_type::integer, cpp::sql::field_info::index_type::foreign_key},
             cpp::sql::field_info{"Data", cpp::sql::field_info::data_type::blob, cpp::sql::field_info::index_type::not_indexed};
 
-        auto& table = (*_db)["Article"];
-        auto& f = table["Section"];
-        table["ID"].set_primary_key();
-        f.set_foreign_key("Section", "ID");
-        std::cout << table.schema_info();
+        auto& article_table = (*_db)["Article"];
+        //auto& f = article_table["Section"];
+        article_table["ID"].set_primary_key();
+        article_table["Section"].set_foreign_key("Section", "ID");
+
         auto& section_table = (*_db)["Section"];
-        auto& field =  section_table["ID"];
-        field.set_primary_key();
-        std::cout << std::endl << section_table.schema_info() << std::endl;
+        section_table["ID"].set_primary_key();
+
+        sys::info() << "Database '" << db_name << "' initialized successfully." << sys::eol;
+        sys::info() << "Database 'CREATE' statement: BEGIN" << sys::eol;
+        sys::info() << section_table.generate_create_table_statement() << sys::eol;
+        sys::info() << article_table.generate_create_table_statement() << sys::eol;
+        sys::info() << "Database 'CREATE' statement: END" << sys::eol;
 
     }catch (std::exception& e)
     {
