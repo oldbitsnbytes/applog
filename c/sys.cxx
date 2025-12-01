@@ -576,8 +576,13 @@ sys::sys(std::string db_name)
 
         auto& table = (*_db)["Article"];
         auto& f = table["Section"];
+        table["ID"].set_primary_key();
         f.set_foreign_key("Section", "ID");
         std::cout << table.schema_info();
+        auto& section_table = (*_db)["Section"];
+        auto& field =  section_table["ID"];
+        field.set_primary_key();
+        std::cout << std::endl << section_table.schema_info() << std::endl;
 
     }catch (std::exception& e)
     {

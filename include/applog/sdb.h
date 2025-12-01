@@ -94,7 +94,7 @@ struct table_info
     std::string             name;
     std::vector<field_info> fields{};
 
-    std::vector<field_info::iterator>    foreign_keys();
+    std::vector<field_info::iterator>    keys();
 
     explicit table_info(std::string tbl_name) : name(std::move(tbl_name)){}
 

@@ -81,10 +81,11 @@ std::string field_info::schema_info() const
 }
 
 
-std::vector<field_info::iterator> table_info::foreign_keys()
+std::vector<field_info::iterator> table_info::keys()
 {
     std::vector<field_info::iterator> fkeys{};
-    for(auto f = fields.begin(); f != fields.end(); ++f) if(f->index == field_info::index_type::foreign_key) fkeys.push_back(f);
+    for(auto f = fields.begin(); f != fields.end(); ++f)
+        if ((f->index == field_info::index_type::foreign_key) || (f->index == field_info::index_type::primary_key)) fkeys.push_back(f);
     return fkeys;
 }
 
@@ -145,7 +146,7 @@ std::string table_info::schema_info()
         out << f.schema_info();
         ++i;
     }
-    auto fk = std::move(foreign_keys());
+    auto fk = std::move(keys());
     if (fk.empty())
         return out() + ");";
 
@@ -154,7 +155,7 @@ std::string table_info::schema_info()
 
         switch (f->index)
         {
-            case field_info::index_type::primary_key:  out << ", PRIMARY KEY"; break;
+            case field_info::index_type::primary_key:  out << ", PRIMARY KEY(\"" << f->name << "\")"; break;
             case field_info::index_type::foreign_key:  out << ", FOREIGN KEY(\"" << f->name << "\") REFERENCES \"" << f->fk.referenced_table_name << "\"(\"" << f->fk.referenced_column_name << "\")"; break;
 
             default:break;
