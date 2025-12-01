@@ -236,6 +236,12 @@ table_info& sdb::operator[](std::string_view tbl_name)
 }
 
 
+std::string sdb::generate_create_database_statement()
+{
+
+}
+
+
 int sdb::call_back(void* tbl_schema, int col_count, char** data, char** column_name)
 {
     if (!tbl_schema)
