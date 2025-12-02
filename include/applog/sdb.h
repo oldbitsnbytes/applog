@@ -135,6 +135,7 @@ public:
     table_info& create_table(std::string tbl_name);
     table_info& operator[](std::string_view tbl_name);
     std::string generate_create_database_statement();
+    auto init_create_db_file() -> rem::code;
 
 private:
 

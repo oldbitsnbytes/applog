@@ -238,7 +238,31 @@ table_info& sdb::operator[](std::string_view tbl_name)
 
 std::string sdb::generate_create_database_statement()
 {
+    if (_tables.empty())
+    {
+        sys::error() <<"'" << _db_name << "': no tables in database - Declare tables prior to call this method." << sys::eol;
+        return "";
+    }
+    cpp::string out;
+    //out << "CREATE DATABASE IF NOT EXISTS \"" << _db_name << "\""; - SQLITE does not have dbname in its own file.
+    for(auto& t : _tables) out << t.generate_create_table_statement();
+    return out();
+}
 
+
+auto sdb::init_create_db_file() -> rem::code
+{
+    auto db_filename = _db_name + ".db";
+    //auto res = sqlite3_open(db_filename.c_str(),&_db);
+    auto res = sqlite3_exec(_db,generate_create_database_statement().c_str(),nullptr,nullptr,nullptr);
+    if(res != SQLITE_OK)
+    {
+        sys::error() << "Failed to create database '" << db_filename << "': " << sqlite3_errmsg(_db) << sys::eol;
+        sqlite3_close(_db);
+        return rem::code::failed;
+    }
+
+    return rem::code::success;
 }
 
 
