@@ -194,11 +194,12 @@ std::string table_info::generate_create_table_statement()
  * @param db_name
  *
  */
-sdb::sdb(std::string db_name):_db_name(std::move(db_name))
+sdb::sdb(std::string db_name)
 {
-    auto db_filename = _db_name + ".db";
-    std::cout << "SQLite database '" << db_filename << "' opening..." << std::endl;
-    auto res = sqlite3_open(db_filename.c_str(),&_db);
+    _db_file = std::move(db_name) + ".db";
+    
+    std::cout << "SQLite database '" << _db_file << "' opening..." << std::endl;
+    auto res = sqlite3_open(_db_file.c_str(),&_db);
     if(res != SQLITE_OK)
         throw std::runtime_error(sqlite3_errmsg(_db));
 
@@ -210,7 +211,7 @@ sdb::sdb(std::string db_name):_db_name(std::move(db_name))
     sqlite3_exec(_db,"PRAGMA cache_size=10000;",nullptr,nullptr,nullptr);
     sqlite3_exec(_db,"PRAGMA count_changes=OFF;",nullptr,nullptr,nullptr);
 
-    sys::info() << rem::fn::file << sys::eol << rem::fn::func << sys::eol << "    => SQLite database '" << db_filename << "' opened successfully." << sys::eol;
+    sys::info() << rem::fn::file << sys::eol << rem::fn::func << sys::eol << "    => SQLite database '" << _db_file << "' opened successfully." << sys::eol;
 }
 
 
@@ -220,10 +221,10 @@ sdb::~sdb()
     if (_db)
     {
         sqlite3_close(_db);
-        std::cout << "SQLite database '" << _db_name << "' closed successfully." << std::endl;
+        std::cout << "SQLite database '" << _db_file << "' closed successfully." << std::endl;
     }
     _tables.clear();
-    _db_name.clear();
+    _db_file.clear();
 
 }
 
@@ -238,23 +239,23 @@ table_info& sdb::create_table(std::string tbl_name)
 table_info& sdb::operator[](std::string_view tbl_name)
 {
     for(auto& t : _tables) if(t.name == tbl_name) return t;
-    throw sys::exception()[sys::error() << "table '" << tbl_name << "' not found in database '" << _db_name << "'"];
+    throw sys::exception()[sys::error() << "table '" << tbl_name << "' not found in database '" << _db_file << "'"];
 }
 
 
 std::string sdb::generate_create_database_statement()
 {
-    sys::warning() << "Generating CREATE DATABASE statement for database '" << _db_name << "'" << sys::eol;
+    sys::warning() << "Generating CREATE DATABASE statement for database '" << _db_file << "'" << sys::eol;
     sys::log()     << "    This is not a standard SQL statement and may not work on all databases." << sys::eol;
     sys::log()     << "    Use this statement only if the sqlite database file is not present and a new must be created." << sys::eol;
 
     if (_tables.empty())
     {
-        sys::error() <<"'" << _db_name << "': no tables in database - Declare tables prior to call this method." << sys::eol;
+        sys::error() <<"'" << _db_file << "': no tables in database - Declare tables prior to call this method." << sys::eol;
         return "";
     }
     cpp::string out;
-    //out << "CREATE DATABASE IF NOT EXISTS \"" << _db_name << "\""; - SQLITE does not have dbname in its own file.
+    //out << "CREATE DATABASE IF NOT EXISTS \"" << _db_file << "\""; - SQLITE does not have dbname in its own file.
     for(auto& t : _tables) out << t.generate_create_table_statement();
     return out();
 }
@@ -262,23 +263,22 @@ std::string sdb::generate_create_database_statement()
 
 auto sdb::init_create_db_file() -> rem::code
 {
-    auto db_filename = _db_name + ".db";
     //auto res = sqlite3_open(db_filename.c_str(),&_db);
     auto res = sqlite3_exec(_db,generate_create_database_statement().c_str(),nullptr,nullptr,nullptr);
     if(res != SQLITE_OK)
     {
-        sys::error() << "Failed to create database '" << db_filename << "': " << sqlite3_errmsg(_db) << sys::eol;
+        sys::error() << "Failed to create database '" << _db_file << "': " << sqlite3_errmsg(_db) << sys::eol;
         sqlite3_close(_db);
         return rem::code::failed;
     }
-
+    sys::info() << "Database '" << _db_file << "' tables successfully deployed." << sys::eol;
     return rem::code::success;
 }
 
 
 rem::code sdb::check_db_file() const
 {
-    auto db_filename = _db_name + ".db";
+    auto db_filename = _db_file + ".db";
     return fs::exists(db_filename) ?  rem::code::exist : rem::code::notexist;
 }
 

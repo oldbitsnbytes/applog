@@ -122,7 +122,7 @@ struct table_info
 class sdb
 {
 
-    std::string _db_name{};
+    std::string _db_file{};
     sqlite3 *_db{nullptr};
     table_info::list _tables{};
 

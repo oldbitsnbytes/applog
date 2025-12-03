@@ -625,6 +625,7 @@ sys::sys(std::string db_name)
 
         if (_db->check_db_file() == rem::code::notexist)
         {
+            sys::info() << "Database file does not exist. Creating it now." << sys::eol;
             if (auto R = _db->init_create_db_file(); !R)
             {
                 sys::error() << "Failed to create the database file: " << R << sys::eol;
