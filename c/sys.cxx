@@ -621,13 +621,17 @@ sys::sys(std::string db_name)
         section_table["ID"].set_primary_key();
 
         sys::info() << "Database '" << db_name << "' initialized successfully." << sys::eol;
-        sys::info() << "Creating the database sqlite file:" << sys::eol;
-        if (auto R = _db->init_create_db_file(); !R)
+        sys::info() << "Checking the sqlite database file: 'appsyslog.db'" << sys::eol;
+
+        if (_db->check_db_file() == rem::code::notexist)
         {
-            sys::error() << "Failed to create the database file: " << R << sys::eol;
-
+            if (auto R = _db->init_create_db_file(); !R)
+            {
+                sys::error() << "Failed to create the database file: " << R << sys::eol;
+                //...
+            }
+            //...
         }
-
 
 
     }catch (std::exception& e)

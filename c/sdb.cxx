@@ -276,6 +276,13 @@ auto sdb::init_create_db_file() -> rem::code
 }
 
 
+rem::code sdb::check_db_file() const
+{
+    auto db_filename = _db_name + ".db";
+    return fs::exists(db_filename) ?  rem::code::exist : rem::code::notexist;
+}
+
+
 int sdb::call_back(void* tbl_schema, int col_count, char** data, char** column_name)
 {
     if (!tbl_schema)
