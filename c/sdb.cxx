@@ -4,6 +4,12 @@
 
 #include <applog/sdb.h>
 #include <applog/sys.h>
+#include <filesystem>
+
+
+
+namespace fs = std::filesystem;
+
 ////////////////////////////////////////////////////////////////////////////////////////////
 //   Copyright (C) ...,2025,... by Serge Lussier
 //   serge.lussier@oldbitsnbytes.club / lussier.serge@gmail.com
@@ -238,6 +244,10 @@ table_info& sdb::operator[](std::string_view tbl_name)
 
 std::string sdb::generate_create_database_statement()
 {
+    sys::warning() << "Generating CREATE DATABASE statement for database '" << _db_name << "'" << sys::eol;
+    sys::log()     << "    This is not a standard SQL statement and may not work on all databases." << sys::eol;
+    sys::log()     << "    Use this statement only if the sqlite database file is not present and a new must be created." << sys::eol;
+
     if (_tables.empty())
     {
         sys::error() <<"'" << _db_name << "': no tables in database - Declare tables prior to call this method." << sys::eol;
